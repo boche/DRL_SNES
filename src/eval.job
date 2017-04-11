@@ -2,8 +2,8 @@
 #SBATCH -N 1
 #SBATCH -p GPU-shared
 #SBATCH --ntasks-per-node 2
-#SBATCH --gres=gpu:k80:1
-#SBATCH -t 24:00:00
+#SBATCH --gres=gpu:p100:1
+#SBATCH -t 1:00:00
 
 # this will request 2 CPU cores, an one k80 on a shared GPU node
 # if the job is still running after 10 hours, it will be automatically killed.
@@ -26,13 +26,13 @@ module load python3
 
 # switch to pylon1
 # NOTE: Files in this directory are deleted when 30 days old
-pushd /home/bchen5/703-hw2/src
+pushd /home/bchen5/DRL_SNES/src
 
 # turn on the virtualenv
 source /home/bchen5/tf-gpu/bin/activate
 
 # run the experiment script
-python dqn_atari.py --env=classic_kong --no_monitor --test --load_network --load_network_path=/home/bchen5/703-hw2/log/classic_kong-run1/qnet2611.h5
+python dqn_atari.py --env=super_mario_all_stars --no_monitor --test --load_network --load_network_path=/home/bchen5/DRL_SNES/log/super_mario_all_stars-run20/qnet2142.h5 --ddqn --net_mode=duel
 
 # turn off the virtualenv
 deactivate

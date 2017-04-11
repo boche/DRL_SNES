@@ -24,14 +24,13 @@ class rle:
 
     def reset(self):
         self.rle.reset_game()
-        # state =  np.squeeze(self.rle.getScreenGrayscale(), axis=2)
         state = self.rle.getScreenRGB()
         if self.record:
             if self.idx_video > 0 and not self.writer.closed:
                 self.writer.close()
             self.idx_video += 1
             filename = "%s/video-%05d.mp4" % (self.path, self.idx_video)
-            self.writer = imageio.get_writer(filename, fps=30, codec = "mpeg4")
+            self.writer = imageio.get_writer(filename, fps=20, codec = "mpeg4")
             self.writer.append_data(state)
         return state
 
@@ -43,7 +42,6 @@ class rle:
             done = self.rle.game_over()
             if done:
                 break
-        # next_state =  np.squeeze(self.rle.getScreenGrayscale(), axis=2)
         next_state = self.rle.getScreenRGB()
         if self.record:
             self.writer.append_data(next_state)
@@ -51,5 +49,3 @@ class rle:
 
     def seed(self, s):
         self.rle.setInt('random_seed', s)
-
-    
