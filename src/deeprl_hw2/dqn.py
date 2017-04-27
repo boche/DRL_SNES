@@ -6,6 +6,7 @@ from deeprl_hw2.core import *
 from keras.optimizers import (Adam, RMSprop)
 import tensorflow as tf
 import numpy as np
+import pdb
 import keras
 from keras.layers import (Activation, Convolution2D, Dense, Flatten, Input,
         Permute, merge, Lambda)
@@ -13,6 +14,12 @@ from keras.models import Model
 from keras import backend as K
 import sys
 from gym import wrappers
+
+config = tf.ConfigProto()
+config.gpu_options.allow_growth=True
+sess = tf.Session(config=config)
+K.set_session(sess)
+K.get_session().run(tf.initialize_all_variables())
 
 """Main DQN agent."""
 
@@ -127,7 +134,8 @@ class DQNAgent:
     def __init__(self, args, num_actions):
         self.num_actions = num_actions
         input_shape = (args.frame_height, args.frame_width, args.num_frames)
-        self.history_processor = HistoryPreprocessor(args.num_frames - 1)
+        self.history_length = max(args.num_frames, args.num_frames_mv) - 1
+        self.history_processor = HistoryPreprocessor(self.history_length)
         self.atari_processor = AtariPreprocessor()
         self.memory = ReplayMemory(args)
         self.policy = LinearDecayGreedyEpsilonPolicy(args.initial_epsilon, args.final_epsilon, args.exploration_steps)
@@ -140,6 +148,7 @@ class DQNAgent:
         self.frame_width = args.frame_width
         self.frame_height = args.frame_height
         self.num_frames = args.num_frames
+        self.num_frames_mv = args.num_frames_mv
         self.output_path = args.output
         self.save_freq = args.save_freq
         self.load_network = args.load_network
@@ -328,16 +337,30 @@ class DQNAgent:
         episode_reward = .0
         episode_raw_reward = .0
         episode_target_value = .0
+        burn_in_mv_rewards = []
+        mv_threshold = -1
         for t in range(self.num_burn_in + num_iterations):
-            action_state = self.history_processor.process_state_for_network(
+            history = self.history_processor.process_state_for_network(
                 self.atari_processor.process_state_for_network(state))
+            action_state = history[:, :, -self.num_frames:]
+            mv_history = history[:, :, -self.num_frames_mv:]
             policy_type = "UniformRandomPolicy" if burn_in else "LinearDecayGreedyEpsilonPolicy"
             action = self.select_action(action_state, is_training, policy_type = policy_type)
             processed_state = self.atari_processor.process_state_for_memory(state)
 
             state, reward, done, info = env.step(action)
-
+            
             processed_next_state = self.atari_processor.process_state_for_network(state)
+            
+            if burn_in:
+                burn_in_mv_rewards.append(np.mean(abs(mv_history-processed_next_state[:,:,np.newaxis]), axis=(0,1)))
+            else:
+                if mv_threshold == -1:
+                    sorted_mv_reward_min=sorted(np.array(burn_in_mv_rewards).min(axis=1))
+                    mv_threshold = sorted_mv_reward_min[-int(len(sorted_mv_reward_min)/self.num_actions)]
+                diff = np.mean(abs(mv_history-processed_next_state[:,:,np.newaxis]), axis=(0,1))
+                reward += 0.9 * (min(diff) > mv_threshold) 
+
             action_next_state = np.dstack((action_state, processed_next_state))
             action_next_state = action_next_state[:, :, 1:]
 
@@ -435,8 +458,9 @@ class DQNAgent:
 
         while idx_episode <= num_episodes:
             t += 1
-            action_state = self.history_processor.process_state_for_network(
+            history = self.history_processor.process_state_for_network(
                 self.atari_processor.process_state_for_network(state))
+            action_state = history[:, :, -self.num_frames:]
             action = self.select_action(action_state, is_training, policy_type = 'GreedyEpsilonPolicy')
             state, reward, done, info = env.step(action)
             episode_frames += 1

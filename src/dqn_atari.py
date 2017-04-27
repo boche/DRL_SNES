@@ -57,6 +57,7 @@ def main():  # noqa: D103
     parser.add_argument('--exploration_steps', default=1000000, type=int, help='Number of steps over which the initial value of epsilon is linearly annealed to its final value')
     parser.add_argument('--num_samples', default=10000000, type=int, help='Number of training samples from the environment in training')
     parser.add_argument('--num_frames', default=4, type=int, help='Number of frames to feed to Q-Network')
+    parser.add_argument('--num_frames_mv', default=10, type=int, help='Number of frames to used to detect movement')
     parser.add_argument('--frame_width', default=84, type=int, help='Resized frame width')
     parser.add_argument('--frame_height', default=84, type=int, help='Resized frame height')
     parser.add_argument('--replay_memory_size', default=1000000, type=int, help='Number of replay memory the agent uses for training')
@@ -83,7 +84,7 @@ def main():  # noqa: D103
     if args.platform == 'atari':
         env = gym.make(args.env)
     else:
-        rom_path = 'roms/' + args.env + '.smc'
+        rom_path = 'roms/' + args.env 
         if args.no_monitor:
             env = rle(rom_path, record=True, path=args.output)
         else:

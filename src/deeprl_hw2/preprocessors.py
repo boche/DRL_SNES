@@ -119,7 +119,7 @@ class AtariPreprocessor(Preprocessor):
 
     def process_reward(self, reward):
         """Clip reward between -1 and 1."""
-        return np.clip(reward, -1, 1) 
+        return np.sign(reward) 
     
     def reset(self):
         self.last_state = None
