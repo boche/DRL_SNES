@@ -380,6 +380,7 @@ class DQNAgent:
                     done = True
 
             if done:
+                need_to_reset = env.lives() == 0 or episode_frames > max_episode_length
                 # adding last frame only to save last state
                 last_frame = self.atari_processor.process_state_for_memory(state)
                 # action, reward, done doesn't matter here
@@ -404,9 +405,10 @@ class DQNAgent:
                     episode_target_value = .0
                     idx_episode += 1
                 burn_in = (t < self.num_burn_in)
-                state = env.reset()
-                self.atari_processor.reset()
-                self.history_processor.reset()
+                if need_to_reset:
+                    state = env.reset()
+                    self.atari_processor.reset()
+                    self.history_processor.reset()
 
             if not burn_in:
                 if t % self.train_freq == 0:

@@ -97,3 +97,31 @@ def compare_model(target, source):
         if (target_weights[i] != source_weights[i]).any():
             return False
     return True
+
+
+class RLEEnvPerLifeWrapper(object):
+    """
+    Wraps an Atari environment to end an episode when a life is lost.
+    """
+    def __init__(self, env):
+        self._env = env
+        obj = env
+        self.rle = env.rle
+
+    def __getattr__(self, name):
+        return getattr(self._env, name)
+
+    def step(self, *args, **kwargs):
+        lives_before = self.rle.lives()
+        next_state, reward, done, info = self._env.step(*args, **kwargs)
+        lives_after = self.rle.lives()
+
+        # End the episode when a life is lost
+        if lives_before > lives_after:
+            done = True
+        #print(reward, done, info)
+
+        return next_state, reward, done, info
+
+    def lives(self):
+        return self.rle.lives()

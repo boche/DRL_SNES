@@ -3,6 +3,7 @@
 import argparse
 import os
 from deeprl_hw2.dqn import DQNAgent
+from deeprl_hw2.utils import RLEEnvPerLifeWrapper
 from rle import rle
 import gym
 from gym import wrappers
@@ -102,6 +103,7 @@ def main():  # noqa: D103
     dqn = DQNAgent(args, num_actions)
     if args.train:
         print("Training mode.")
+        env = RLEEnvPerLifeWrapper(env)
         dqn.fit(env, args.num_samples, args.max_episode_length)
     else:
         print("Evaluation mode.")
