@@ -336,6 +336,7 @@ class DQNAgent:
         episode_frames = 0
         episode_reward = .0
         episode_raw_reward = .0
+        episode_no_explore_reward = .0
         episode_target_value = .0
         burn_in_mv_rewards = []
         mv_threshold = -1
@@ -350,6 +351,7 @@ class DQNAgent:
             processed_state = self.atari_processor.process_state_for_memory(state)
 
             state, reward, done, info = env.step(action)
+            no_explore_reward = reward
             
             processed_next_state = self.atari_processor.process_state_for_network(state)
             
@@ -376,6 +378,7 @@ class DQNAgent:
                 episode_frames += 1
                 episode_reward += processed_reward
                 episode_raw_reward += reward
+                episode_no_explore_reward += no_explore_reward
                 if episode_frames > max_episode_length:
                     done = True
 
@@ -387,13 +390,15 @@ class DQNAgent:
                 self.memory.append(last_frame, action, 0, done)
                 if not burn_in:
                     avg_target_value = episode_target_value / episode_frames
-                    print("Train: time %d, episode %d, length %d, reward %.0f, raw_reward %.0f, loss %.4f, target value %.4f, policy step %d, memory cap %d" % 
+                    print("Train: time %d, episode %d, length %d, reward %.0f, 
+                        raw_reward %.0f, loss %.4f, target value %.4f, policy step %d, memory cap %d" % 
                         (t, idx_episode, episode_frames, episode_reward, episode_raw_reward, episode_loss, 
                         avg_target_value, self.policy.step, self.memory.current))
                     sys.stdout.flush()
                     save_scalar(idx_episode, 'episode/frames', episode_frames, writer)
                     save_scalar(idx_episode, 'episode/reward', episode_reward, writer)
                     save_scalar(idx_episode, 'episode/raw_reward', episode_raw_reward, writer)
+                    save_scalar(idx_episode, 'episode/no_explore_reward', episode_no_explore_reward, writer)
                     save_scalar(idx_episode, 'episode/loss', episode_loss, writer)
                     save_scalar(idx_episode, 'avg/reward', episode_reward / episode_frames, writer)
                     save_scalar(idx_episode, 'avg/target_value', avg_target_value, writer)
@@ -401,6 +406,7 @@ class DQNAgent:
                     episode_frames = 0
                     episode_reward = .0
                     episode_raw_reward = .0
+                    episode_no_explore_reward = .0
                     episode_loss = .0
                     episode_target_value = .0
                     idx_episode += 1
