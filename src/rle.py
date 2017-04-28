@@ -24,6 +24,11 @@ class rle:
 
     def reset(self):
         self.rle.reset_game()
+        # noop
+        num_noop = randrange(30)
+        for i in range(num_noop):
+            self.rle.act(0)
+
         state = self.rle.getScreenRGB()
         if self.record:
             if self.idx_video > 0 and not self.writer.closed:
