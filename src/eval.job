@@ -3,7 +3,7 @@
 #SBATCH -p GPU-shared
 #SBATCH --ntasks-per-node 2
 #SBATCH --gres=gpu:p100:1
-#SBATCH -t 1:00:00
+#SBATCH -t 0:30:00
 
 # this will request 2 CPU cores, an one k80 on a shared GPU node
 # if the job is still running after 10 hours, it will be automatically killed.
@@ -32,7 +32,8 @@ pushd /home/bchen5/DRL_SNES/src
 source /home/bchen5/tf-gpu/bin/activate
 
 # run the experiment script
-python dqn_atari.py --env=super_mario_all_stars --no_monitor --test --load_network --load_network_path=/home/bchen5/DRL_SNES/log/super_mario_all_stars-run20/qnet2142.h5 --ddqn --net_mode=duel
+#python dqn_atari.py --env=super_mario_all_stars --no_monitor --test --load_network --load_network_path=/home/bchen5/DRL_SNES/log/super_mario_all_stars-run20/qnet2142.h5 --ddqn --net_mode=duel
+python dqn_atari.py --env=super_mario_world.sfc --no_monitor --test --load_network --load_network_path=/home/bchen5/DRL_SNES/log/super_mario_world.sfc-run6/qnet278.h5 --ddqn --net_mode=duel
 
 # turn off the virtualenv
 deactivate

@@ -400,9 +400,8 @@ class DQNAgent:
                 self.memory.append(last_frame, action, 0, done)
                 if not burn_in:
                     avg_target_value = episode_target_value / episode_frames
-                    print("Train: time %d, episode %d, length %d, reward %.0f, \
-                        raw_reward %.0f, loss %.4f, target value %.4f, policy step %d, memory cap %d" % 
-                        (t, idx_episode, episode_frames, episode_reward, episode_raw_reward, episode_loss, 
+                    print("Train: time %d, episode %d, length %d, reward %.0f, raw_reward %.0f, loss %.4f, target value %.4f, policy step %d, memory cap %d"
+                        % (t, idx_episode, episode_frames, episode_reward, episode_raw_reward, episode_loss, 
                         avg_target_value, self.policy.step, self.memory.current))
                     sys.stdout.flush()
                     save_scalar(idx_episode, 'episode/frames', episode_frames, writer)

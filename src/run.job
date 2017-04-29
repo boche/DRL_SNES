@@ -32,8 +32,11 @@ pushd /home/bchen5/DRL_SNES/src
 source /home/bchen5/tf-gpu/bin/activate
 
 # run the experiment script
-#python dqn_atari.py --env=super_mario_all_stars --ddqn --net_mode=duel
-python dqn_atari.py --env=sonic_the_hedgehog.sfc --ddqn --net_mode=duel
+#python dqn_atari.py --env=super_mario_all_stars_no_right.smc --ddqn --net_mode=duel --perlife --mv_reward --clip_reward
+#python dqn_atari.py --env=super_mario_world.sfc --ddqn --net_mode=duel
+#python dqn_atari.py --env=super_mario_world.sfc --ddqn --net_mode=duel --perlife --mv_reward --clip_reward
+#python dqn_atari.py --env=super_mario_world.sfc --ddqn --net_mode=duel --perlife --clip_reward
+python dqn_atari.py --env=super_mario_world.sfc --ddqn --net_mode=duel --perlife --mv_reward
 
 # turn off the virtualenv
 deactivate
