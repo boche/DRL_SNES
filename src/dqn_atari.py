@@ -79,7 +79,9 @@ def main():  # noqa: D103
     parser.add_argument('--no_target', default=False, action='store_true', help='do not use target fixing')
     parser.add_argument('--no_monitor', default=False, action='store_true', help='do not record video')
     parser.add_argument('-p', '--platform', default='rle', help='rle or atari. rle: rle; atari: gym-atari')
-
+    parser.add_argument('-pl', '--perlife', default=True, action='store_true', help='use per life or not. ')
+    parser.add_argument('-mv', '--mv_reward', default=True, action='store_true', help='use movement reward or not')
+    parser.add_argument('-c', '--clip_reward', default=False, action='store_true', help='clip reward or not')
     args = parser.parse_args()
     args.output = get_output_folder(args.output, args.env)
     if args.platform == 'atari':
@@ -103,7 +105,8 @@ def main():  # noqa: D103
     dqn = DQNAgent(args, num_actions)
     if args.train:
         print("Training mode.")
-        env = RLEEnvPerLifeWrapper(env)
+        if args.perlife:
+            env = RLEEnvPerLifeWrapper(env)
         dqn.fit(env, args.num_samples, args.max_episode_length)
     else:
         print("Evaluation mode.")

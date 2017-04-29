@@ -161,6 +161,8 @@ class DQNAgent:
         self.eval_freq = args.eval_freq
         self.no_experience = args.no_experience
         self.no_target = args.no_target
+        self.mv_reward = args.mv_reward
+        self.clip_reward = args.clip_reward
         print("Target fixing: %s, Experience replay: %s" % (not self.no_target, not self.no_experience))
 
         # initialize target network
@@ -341,6 +343,8 @@ class DQNAgent:
         burn_in_mv_rewards = []
         mv_threshold = -1
         burn_in_raw_reward = []
+        burn_in_min_raw_reward = 99999
+        mv_reward = 0
         for t in range(self.num_burn_in + num_iterations):
             history = self.history_processor.process_state_for_network(
                 self.atari_processor.process_state_for_network(state))
@@ -354,22 +358,28 @@ class DQNAgent:
             no_explore_reward = reward
             
             processed_next_state = self.atari_processor.process_state_for_network(state)
-            
-            if burn_in:
-                burn_in_mv_rewards.append(np.mean(abs(mv_history-processed_next_state[:,:,np.newaxis]), axis=(0,1)))
-                burn_in_raw_reward.append(reward)
-            else:
-                if mv_threshold == -1:
-                    sorted_mv_reward_min=sorted(np.array(burn_in_mv_rewards).min(axis=1))
-                    mv_threshold = sorted_mv_reward_min[-int(len(sorted_mv_reward_min)/self.num_actions)]
-                diff = np.mean(abs(mv_history-processed_next_state[:,:,np.newaxis]), axis=(0,1))
-                reward += 0.9 * (min(diff) > mv_threshold)
-                #pdb.set_trace()
+            if burn_in and reward > 0:
+                burn_in_min_raw_reward = min(burn_in_min_raw_reward, reward)
+            if self.mv_reward:
+                if burn_in:
+                    burn_in_mv_rewards.append(np.mean(abs(mv_history-processed_next_state[:,:,np.newaxis]), axis=(0,1)))
+                    #burn_in_raw_reward.append(reward)
+                else:
+                    if mv_threshold == -1:
+                        sorted_mv_reward_min=sorted(np.array(burn_in_mv_rewards).min(axis=1))
+                        mv_threshold = sorted_mv_reward_min[-int(len(sorted_mv_reward_min)/self.num_actions)]
+                    diff = np.mean(abs(mv_history-processed_next_state[:,:,np.newaxis]), axis=(0,1))
+                    mv_reward = 0.9 * (min(diff) > mv_threshold)
+                    #min_raw_reward = min([x for x in burn_in_raw_reward if x != 0])
+                    #pdb.set_trace()
 
             action_next_state = np.dstack((action_state, processed_next_state))
             action_next_state = action_next_state[:, :, 1:]
-
-            processed_reward = self.atari_processor.process_reward(reward)
+            
+            if self.clip_reward:
+                processed_reward = self.atari_processor.process_reward(reward+mv_reward)
+            else:
+                processed_reward = 2*reward/float(burn_in_min_raw_reward) + mv_reward
 
             self.memory.append(processed_state, action, processed_reward, done)
             current_sample = Sample(action_state, action, processed_reward, action_next_state, done)
