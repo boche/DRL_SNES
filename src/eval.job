@@ -33,7 +33,8 @@ source /home/bchen5/tf-gpu/bin/activate
 
 # run the experiment script
 #python dqn_atari.py --env=super_mario_all_stars --no_monitor --test --load_network --load_network_path=/home/bchen5/DRL_SNES/log/super_mario_all_stars-run20/qnet2142.h5 --ddqn --net_mode=duel
-python dqn_atari.py --env=super_mario_world.sfc --no_monitor --test --load_network --load_network_path=/home/bchen5/DRL_SNES/log/super_mario_world.sfc-run6/qnet4075.h5 --ddqn --net_mode=duel
+#python dqn_atari.py --env=super_mario_world.sfc --no_monitor --test --load_network --load_network_path=/home/bchen5/DRL_SNES/log/super_mario_world.sfc-run6/qnet4075.h5 --ddqn --net_mode=duel
+python dqn_atari.py --env=super_mario_all_stars_no_right.smc --no_monitor --test --load_network --load_network_path=/home/bchen5/DRL_SNES/log/super_mario_all_stars_no_right.smc-run9/qnet1114.h5 --ddqn --net_mode=duel
 
 # turn off the virtualenv
 deactivate

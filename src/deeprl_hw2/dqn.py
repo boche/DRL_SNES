@@ -385,11 +385,13 @@ class DQNAgent:
                 prob = self.initial_epsilon + min(t, self.exploration_steps) * explore_step
             else:
                 prob = 1.0
-            processed_reward = 2 * reward / float(burn_in_min_raw_reward)
+            with_explore_reward = 2 * reward / float(burn_in_min_raw_reward)
             if np.random.rand() < prob:
-                processed_reward += mv_reward
+                with_explore_reward += mv_reward
             if self.clip_reward:
-                processed_reward = self.atari_processor.process_reward(processed_reward)
+                processed_reward = self.atari_processor.process_reward(with_explore_reward)
+            else:
+                processed_reward = with_explore_reward
             # if self.clip_reward:
                 # processed_reward = self.atari_processor.process_reward(reward+mv_reward)
             # else:
@@ -401,7 +403,7 @@ class DQNAgent:
             if not burn_in: 
                 episode_frames += 1
                 episode_reward += processed_reward
-                episode_raw_reward += reward
+                episode_raw_reward += with_explore_reward
                 episode_no_explore_reward += no_explore_reward
                 if episode_frames > max_episode_length:
                     done = True

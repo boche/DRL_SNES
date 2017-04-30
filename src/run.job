@@ -37,10 +37,13 @@ source /home/bchen5/tf-gpu/bin/activate
 #python dqn_atari.py --env=super_mario_world.sfc --ddqn --net_mode=duel --perlife --mv_reward --clip_reward
 #python dqn_atari.py --env=super_mario_world.sfc --ddqn --net_mode=duel --perlife --clip_reward
 #python dqn_atari.py --env=super_mario_world.sfc --ddqn --net_mode=duel --perlife --mv_reward
+#python dqn_atari.py --env=super_mario_world.sfc --ddqn --net_mode=duel --perlife --mv_reward --clip_reward
+python dqn_atari.py --env=super_mario_world.sfc --ddqn --net_mode=duel --perlife --mv_reward --clip_reward --decay_reward --exploration_steps=4000000
 #python dqn_atari.py --env=super_mario_all_stars_no_right.smc --ddqn --net_mode=duel --perlife --mv_reward --decay_reward
+#python dqn_atari.py --env=super_mario_all_stars_no_right.smc --ddqn --net_mode=duel --perlife --mv_reward --decay_reward --exploration_steps=4000000
 #python dqn_atari.py --env=super_mario_all_stars_no_right.smc --ddqn --net_mode=duel --perlife --mv_reward
 #python dqn_atari.py --env=super_mario_all_stars_no_right.smc --ddqn --net_mode=duel --perlife --mv_reward --clip_reward
-python dqn_atari.py --env=super_mario_all_stars_no_right.smc --ddqn --net_mode=duel --perlife --clip_reward
+#python dqn_atari.py --env=super_mario_all_stars_no_right.smc --ddqn --net_mode=duel --perlife --clip_reward
 
 # turn off the virtualenv
 deactivate
