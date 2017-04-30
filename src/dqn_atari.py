@@ -55,7 +55,7 @@ def main():  # noqa: D103
     parser.add_argument('--learning_rate', default=0.0001, type=float, help='Learning rate')
     parser.add_argument('--initial_epsilon', default=1.0, type=float, help='Initial exploration probability in epsilon-greedy')
     parser.add_argument('--final_epsilon', default=0.05, type=float, help='Final exploration probability in epsilon-greedy')
-    parser.add_argument('--exploration_steps', default=1000000, type=int, help='Number of steps over which the initial value of epsilon is linearly annealed to its final value')
+    parser.add_argument('--exploration_steps', default=2000000, type=int, help='Number of steps over which the initial value of epsilon is linearly annealed to its final value')
     parser.add_argument('--num_samples', default=10000000, type=int, help='Number of training samples from the environment in training')
     parser.add_argument('--num_frames', default=4, type=int, help='Number of frames to feed to Q-Network')
     parser.add_argument('--num_frames_mv', default=10, type=int, help='Number of frames to used to detect movement')
@@ -82,6 +82,7 @@ def main():  # noqa: D103
     parser.add_argument('-pl', '--perlife', default=False, action='store_true', help='use per life or not. ')
     parser.add_argument('-mv', '--mv_reward', default=False, action='store_true', help='use movement reward or not')
     parser.add_argument('-c', '--clip_reward', default=False, action='store_true', help='clip reward or not')
+    parser.add_argument('--decay_reward', default=False, action='store_true', help='decay reward or not')
     args = parser.parse_args()
     args.output = get_output_folder(args.output, args.env)
     if args.platform == 'atari':

@@ -139,6 +139,10 @@ class DQNAgent:
         self.atari_processor = AtariPreprocessor()
         self.memory = ReplayMemory(args)
         self.policy = LinearDecayGreedyEpsilonPolicy(args.initial_epsilon, args.final_epsilon, args.exploration_steps)
+        self.decay_reward = args.decay_reward
+        self.initial_epsilon = args.initial_epsilon
+        self.final_epsilon = args.final_epsilon
+        self.exploration_steps = args.exploration_steps
         self.gamma = args.gamma
         self.target_update_freq = args.target_update_freq
         self.num_burn_in = args.num_burn_in
@@ -345,6 +349,7 @@ class DQNAgent:
         burn_in_raw_reward = []
         burn_in_min_raw_reward = 99999
         mv_reward = 0
+        explore_step = (self.final_epsilon - self.initial_epsilon) / self.exploration_steps
         for t in range(self.num_burn_in + num_iterations):
             history = self.history_processor.process_state_for_network(
                 self.atari_processor.process_state_for_network(state))
@@ -376,10 +381,19 @@ class DQNAgent:
             action_next_state = np.dstack((action_state, processed_next_state))
             action_next_state = action_next_state[:, :, 1:]
             
-            if self.clip_reward:
-                processed_reward = self.atari_processor.process_reward(reward+mv_reward)
+            if self.decay_reward:
+                prob = self.initial_epsilon + min(t, self.exploration_steps) * explore_step
             else:
-                processed_reward = 2*reward/float(burn_in_min_raw_reward) + mv_reward
+                prob = 1.0
+            processed_reward = 2 * reward / float(burn_in_min_raw_reward)
+            if np.random.rand() < prob:
+                processed_reward += mv_reward
+            if self.clip_reward:
+                processed_reward = self.atari_processor.process_reward(processed_reward)
+            # if self.clip_reward:
+                # processed_reward = self.atari_processor.process_reward(reward+mv_reward)
+            # else:
+                # processed_reward = 2*reward/float(burn_in_min_raw_reward) + mv_reward
 
             self.memory.append(processed_state, action, processed_reward, done)
             current_sample = Sample(action_state, action, processed_reward, action_next_state, done)
