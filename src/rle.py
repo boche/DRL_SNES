@@ -2,6 +2,7 @@ from rle_python_interface.rle_python_interface import RLEInterface
 from random import randrange
 import numpy as np
 import imageio
+import pickle
 
 class actionSet:
     def __init__(self, rle): 
@@ -33,10 +34,15 @@ class rle:
         if self.record:
             if self.idx_video > 0 and not self.writer.closed:
                 self.writer.close()
+                with open(self.trace_path, 'wb') as tdump:
+                    pickle.dump(self.trace, tdump)
             self.idx_video += 1
             filename = "%s/video-%05d.mp4" % (self.path, self.idx_video)
             self.writer = imageio.get_writer(filename, fps=20, codec = "mpeg4")
             self.writer.append_data(state)
+            self.trace_path = "%s/trace-%05d.dmp" % (self.path, self.idx_video)
+            self.trace = {"state": [], "reward": [], "action": [], "done": []}
+            self.trace["state"].append(state)
         return state
 
     def step(self, action_ix):
@@ -50,6 +56,10 @@ class rle:
         next_state = self.rle.getScreenRGB()
         if self.record:
             self.writer.append_data(next_state)
+            self.trace["state"].append(next_state)
+            self.trace["reward"].append(reward)
+            self.trace["action"].append(action_ix)
+            self.trace["done"].append(reward)
         return next_state, reward, done, ''
 
     def seed(self, s):
