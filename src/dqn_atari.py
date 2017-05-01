@@ -7,6 +7,7 @@ from deeprl_hw2.utils import RLEEnvPerLifeWrapper
 from rle import rle
 import gym
 from gym import wrappers
+import pickle
 
 def get_output_folder(parent_dir, env_name):
     """Return save folder.
@@ -44,6 +45,36 @@ def get_output_folder(parent_dir, env_name):
     parent_dir = parent_dir + '-run{}'.format(experiment_id)
     os.mkdir(parent_dir)
     return parent_dir
+
+
+def trace2mem(args):
+    from deeprl_hw2.preprocessors import AtariPreprocessor
+    from deeprl_hw2.core import ReplayMemory
+    import glob
+    import pickle
+    
+    memory = ReplayMemory(args)
+    atari_processor = AtariPreprocessor()
+
+    count = 0
+
+    for trace_path in glob.glob("%s/*.dmp" % args.trace_dir):
+        with open(trace_path, 'rb') as tdump:
+            trace = pickle.load(tdump)
+        for state, action, reward, done in zip(trace["state"], trace["action"], trace["reward"], trace["done"]):
+            processed_state = atari_processor.process_state_for_memory(state)
+            processed_reward = atari_processor.process_reward(reward)
+            memory.append(processed_state, action, processed_reward, done)
+            count += 1
+        if len(trace["state"]) > len(trace["reward"]):
+            processed_state = atari_processor.process_state_for_memory(trace["state"][-1])
+            memory.append(processed_state, trace["action"][-1], 0, trace["done"][-1])
+            count += 1
+
+    with open(args.mem_dump, 'wb') as mdump:
+        print(count)
+        pickle.dump(memory, mdump)
+
 
 def main():  # noqa: D103
     parser = argparse.ArgumentParser(description='Run DQN on Atari Breakout')
@@ -83,8 +114,16 @@ def main():  # noqa: D103
     parser.add_argument('-mv', '--mv_reward', default=False, action='store_true', help='use movement reward or not')
     parser.add_argument('-c', '--clip_reward', default=False, action='store_true', help='clip reward or not')
     parser.add_argument('--decay_reward', default=False, action='store_true', help='decay reward or not')
+    parser.add_argument('--trace_dir', default='', help='the trace dir for expert')
+    parser.add_argument('--trace2mem', default=False, action='store_true', help='convert trace to memory')
+    parser.add_argument('--mem_dump', default='', help='the path of memory dump')
     args = parser.parse_args()
     args.output = get_output_folder(args.output, args.env)
+
+    if args.trace2mem:
+        trace2mem(args)
+        exit(0)
+
     if args.platform == 'atari':
         env = gym.make(args.env)
     else:
