@@ -83,6 +83,10 @@ def main():  # noqa: D103
     parser.add_argument('-mv', '--mv_reward', default=False, action='store_true', help='use movement reward or not')
     parser.add_argument('-c', '--clip_reward', default=False, action='store_true', help='clip reward or not')
     parser.add_argument('--decay_reward', default=False, action='store_true', help='decay reward or not')
+    parser.add_argument('--expert_memory', default=None, help='path of the expert memory')
+    parser.add_argument('--initial_prob_replaying_expert', default=1.0, type=float, help='Initial probability of using expert replaying memory')
+    parser.add_argument('--final_prob_replaying_expert', default=0.05, type=float, help='Final probability of using expert replaying memory')
+    parser.add_argument('--steps_replaying_expert', default=1000000, type=float, help='# steps over which the initial prob of replaying expert memory is linearly annealed to its final value') 
     args = parser.parse_args()
     args.output = get_output_folder(args.output, args.env)
     if args.platform == 'atari':

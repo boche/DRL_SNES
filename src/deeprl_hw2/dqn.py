@@ -14,6 +14,7 @@ from keras.models import Model
 from keras import backend as K
 import sys
 from gym import wrappers
+import pickle
 
 config = tf.ConfigProto()
 config.gpu_options.allow_growth=True
@@ -167,6 +168,13 @@ class DQNAgent:
         self.no_target = args.no_target
         self.mv_reward = args.mv_reward
         self.clip_reward = args.clip_reward
+        self.expert_memory = None
+        if args.expert_memory != None:
+            with open(args.expert_memory, 'rb') as mdump:
+                self.expert_memory = pickle.load(mdum)
+        self.expert_prob = args.initial_prob_replaying_expert
+        self.final_prob_replaying_expert = args.final_prob_replaying_expert
+        self.decay_step_replaying_expert = (self.final_prob_replaying_expert- args.initial_prob_replaying_expert)/args.steps_replaying_expert
         print("Target fixing: %s, Experience replay: %s" % (not self.no_target, not self.no_experience))
 
         # initialize target network
@@ -276,7 +284,13 @@ class DQNAgent:
             action_mask = np.zeros((1, self.num_actions))
             action_mask[0, current_sample.action] = 1.0
         else:
-            samples = self.memory.sample(batch_size)
+            if args.expert_memory != None:
+                expert_samples_num = int(round(batch_size * self.expert_prob)) 
+                learner_samples_num = batch_size - expert_samples_num
+                self.expert_prob = max(self.expert_prob+self.decay_step_replaying_expert, self.final_prob_replaying_expert)
+                samples = self.memory.sample(learner_samples_num) + self.expert_memory.sample(expert_samples_num)
+            else:
+                samples = self.memory.sample(batch_size)
             samples = self.atari_processor.process_batch(samples)
 
             states = np.stack([x.state for x in samples])
