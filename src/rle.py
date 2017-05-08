@@ -61,6 +61,9 @@ class rle:
             self.trace["action"].append(action_ix)
             self.trace["done"].append(reward)
         return next_state, reward, done, ''
+    
+    def lives(self):
+        return  self.rle.lives()
 
     def seed(self, s):
         self.rle.setInt('random_seed', s)

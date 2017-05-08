@@ -171,7 +171,7 @@ class DQNAgent:
         self.expert_memory = None
         if args.expert_memory != None:
             with open(args.expert_memory, 'rb') as mdump:
-                self.expert_memory = pickle.load(mdum)
+                self.expert_memory = pickle.load(mdump)
         self.expert_prob = args.initial_prob_replaying_expert
         self.final_prob_replaying_expert = args.final_prob_replaying_expert
         self.decay_step_replaying_expert = (self.final_prob_replaying_expert- args.initial_prob_replaying_expert)/args.steps_replaying_expert
@@ -284,7 +284,7 @@ class DQNAgent:
             action_mask = np.zeros((1, self.num_actions))
             action_mask[0, current_sample.action] = 1.0
         else:
-            if args.expert_memory != None:
+            if self.expert_memory != None:
                 expert_samples_num = int(round(batch_size * self.expert_prob)) 
                 learner_samples_num = batch_size - expert_samples_num
                 self.expert_prob = max(self.expert_prob+self.decay_step_replaying_expert, self.final_prob_replaying_expert)
@@ -400,6 +400,7 @@ class DQNAgent:
             else:
                 prob = 1.0
             with_explore_reward = 2 * reward / float(burn_in_min_raw_reward)
+            #with_explore_reward = reward
             if np.random.rand() < prob:
                 with_explore_reward += mv_reward
             if self.clip_reward:
